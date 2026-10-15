@@ -1,0 +1,637 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>한자 문장 완성 퀴즈</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Gowun+Batang:wght@400;700&family=Noto+Serif+KR:wght@500;700;900&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg-color: #f7f4ea;
+      --paper-bg: #fffdf7;
+      --card-border: #3a2e2b;
+      --primary-red: #c0392b;
+      --text-main: #2b2421;
+      --sub-text: #665a52;
+      --correct-color: #27ae60;
+      --wrong-color: #e74c3c;
+      --shadow: 0 4px 12px rgba(58, 46, 43, 0.08);
+      --card-shadow: 0 2px 6px rgba(0, 0, 0, 0.06);
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      user-select: none;
+    }
+
+    body {
+      background-color: var(--bg-color);
+      background-image: radial-gradient(#e2d9c8 1px, transparent 1px);
+      background-size: 20px 20px;
+      color: var(--text-main);
+      font-family: 'Gowun Batang', serif;
+      padding: 20px 10px 60px;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    .container {
+      max-width: 900px;
+      width: 100%;
+    }
+
+    header {
+      text-align: center;
+      margin-bottom: 24px;
+      border-bottom: 2px solid var(--card-border);
+      padding-bottom: 16px;
+      position: relative;
+    }
+
+    header::after {
+      content: '';
+      display: block;
+      width: 60px;
+      height: 3px;
+      background-color: var(--primary-red);
+      margin: 12px auto 0;
+    }
+
+    h1 {
+      font-family: 'Noto Serif KR', serif;
+      font-size: 1.8rem;
+      font-weight: 900;
+      color: var(--card-border);
+      letter-spacing: -0.5px;
+    }
+
+    .sub-title {
+      font-size: 0.95rem;
+      color: var(--sub-text);
+      margin-top: 6px;
+    }
+
+    /* 한자 뱅크 스타일 */
+    .bank-section {
+      background: var(--paper-bg);
+      border: 2px solid var(--card-border);
+      border-radius: 8px;
+      padding: 16px;
+      margin-bottom: 24px;
+      box-shadow: var(--shadow);
+      position: sticky;
+      top: 10px;
+      z-index: 100;
+    }
+
+    .section-title {
+      font-size: 1.05rem;
+      font-weight: 700;
+      color: var(--card-border);
+      margin-bottom: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .card-grid {
+      display: grid;
+      grid-template-columns: repeat(7, 1fr);
+      gap: 8px;
+    }
+
+    @media (max-width: 600px) {
+      .card-grid {
+        grid-template-columns: repeat(4, 1fr);
+      }
+    }
+
+    .hanja-card {
+      background: #ffffff;
+      border: 1.5px solid var(--card-border);
+      border-radius: 6px;
+      padding: 8px 4px;
+      text-align: center;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      box-shadow: var(--card-shadow);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .hanja-card:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+      border-color: var(--primary-red);
+    }
+
+    .hanja-card:active {
+      transform: translateY(0);
+    }
+
+    .hanja-card .char {
+      font-family: 'Noto Serif KR', serif;
+      font-size: 1.6rem;
+      font-weight: 700;
+      line-height: 1.2;
+    }
+
+    .hanja-card .char.blue {
+      color: #1a5276;
+    }
+
+    .hanja-card .sound {
+      font-size: 0.75rem;
+      color: var(--sub-text);
+      margin-top: 2px;
+    }
+
+    /* 컨트롤 버튼 */
+    .action-bar {
+      display: flex;
+      gap: 12px;
+      justify-content: center;
+      margin-bottom: 24px;
+      flex-wrap: wrap;
+    }
+
+    .btn {
+      background: var(--paper-bg);
+      border: 2px solid var(--card-border);
+      padding: 10px 20px;
+      border-radius: 6px;
+      font-family: 'Gowun Batang', serif;
+      font-weight: 700;
+      font-size: 1rem;
+      color: var(--card-border);
+      cursor: pointer;
+      transition: all 0.2s ease;
+      box-shadow: var(--card-shadow);
+    }
+
+    .btn:hover {
+      background: var(--card-border);
+      color: #ffffff;
+    }
+
+    .btn-submit {
+      background: var(--primary-red);
+      color: #ffffff;
+      border-color: var(--primary-red);
+      font-size: 1.1rem;
+      padding: 12px 30px;
+    }
+
+    .btn-submit:hover {
+      background: #962d22;
+      border-color: #962d22;
+    }
+
+    /* 전체 문제 그리드 */
+    .quiz-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(270px, 1fr));
+      gap: 16px;
+    }
+
+    /* 문제 카드 */
+    .quiz-card {
+      background: var(--paper-bg);
+      border: 1.5px solid var(--card-border);
+      border-radius: 8px;
+      padding: 16px;
+      box-shadow: var(--card-shadow);
+      display: flex;
+      flex-direction: column;
+      position: relative;
+    }
+
+    .quiz-header {
+      margin-bottom: 12px;
+      border-bottom: 1px solid #e2d9c8;
+      padding-bottom: 8px;
+    }
+
+    .korean-text {
+      font-size: 1.05rem;
+      font-weight: 700;
+      color: var(--card-border);
+      letter-spacing: -0.3px;
+    }
+
+    .korean-text span.highlight {
+      color: var(--primary-red);
+    }
+
+    /* 슬롯 구조 */
+    .slots-container {
+      display: flex;
+      gap: 8px;
+      justify-content: flex-start;
+      margin-top: 6px;
+    }
+
+    .slot {
+      width: 48px;
+      height: 48px;
+      border: 2px dashed #a0958a;
+      border-radius: 6px;
+      background: #ffffff;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: 'Noto Serif KR', serif;
+      font-size: 1.5rem;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      position: relative;
+    }
+
+    .slot.selected {
+      border: 2px solid var(--primary-red);
+      background-color: #fdf2f0;
+      box-shadow: 0 0 6px rgba(192, 57, 43, 0.3);
+    }
+
+    .slot.filled {
+      border-style: solid;
+      border-color: var(--card-border);
+    }
+
+    .slot-clear {
+      position: absolute;
+      top: -6px;
+      right: -6px;
+      background: var(--primary-red);
+      color: white;
+      width: 16px;
+      height: 16px;
+      border-radius: 50%;
+      font-size: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      opacity: 0;
+      transition: opacity 0.2s ease;
+    }
+
+    .slot:hover .slot-clear {
+      opacity: 1;
+    }
+
+    /* 결과 피드백 */
+    .feedback-badge {
+      position: absolute;
+      top: 12px;
+      right: 12px;
+      font-weight: bold;
+      font-size: 1.2rem;
+      display: none;
+    }
+
+    .feedback-badge.correct {
+      color: var(--correct-color);
+      display: block;
+    }
+
+    .feedback-badge.wrong {
+      color: var(--wrong-color);
+      display: block;
+    }
+
+    .answer-view {
+      margin-top: 10px;
+      font-size: 0.88rem;
+      color: var(--primary-red);
+      font-weight: bold;
+      display: none;
+    }
+
+    /* 모달 */
+    .modal-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(0,0,0,0.5);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 1000;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.3s ease;
+    }
+
+    .modal-overlay.active {
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    .modal-card {
+      background: var(--paper-bg);
+      border: 2px solid var(--card-border);
+      border-radius: 12px;
+      padding: 28px;
+      max-width: 420px;
+      width: 90%;
+      text-align: center;
+      box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+    }
+
+    .modal-title {
+      font-family: 'Noto Serif KR', serif;
+      font-size: 1.5rem;
+      font-weight: 700;
+      margin-bottom: 12px;
+    }
+
+    .modal-score {
+      font-size: 2.5rem;
+      font-weight: 900;
+      color: var(--primary-red);
+      margin: 10px 0;
+    }
+
+    .modal-desc {
+      color: var(--sub-text);
+      font-size: 0.95rem;
+      margin-bottom: 20px;
+      line-height: 1.5;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="container">
+    <header>
+      <h1>한자 문장 완성 퀴즈</h1>
+      <p class="sub-title">한자 카드를 클릭하여 빈칸을 채운 후 답안을 제출해보세요!</p>
+    </header>
+
+    <!-- 한자 카드 뱅크 -->
+    <section class="bank-section">
+      <div class="section-title">
+        <span>📜 한자 카드 뱅크</span>
+        <span style="font-size: 0.8rem; font-weight: normal; color: var(--sub-text);">카드를 눌러 선택한 빈칸에 입력하세요.</span>
+      </div>
+      <div class="card-grid" id="cardBank">
+        <!-- JS로 카드 동적 생성 -->
+      </div>
+    </section>
+
+    <!-- 액션 버튼 -->
+    <div class="action-bar">
+      <button class="btn btn-submit" id="btnSubmit">📝 답안 제출 및 채점하기</button>
+      <button class="btn" id="btnReset">🔄 다시 풀기</button>
+    </div>
+
+    <!-- 퀴즈 문제 영역 -->
+    <main class="quiz-grid" id="quizArea">
+      <!-- JS로 생성 -->
+    </main>
+  </div>
+
+  <!-- 결과 모달 -->
+  <div class="modal-overlay" id="resultModal">
+    <div class="modal-card">
+      <div class="modal-title">🎉 채점 결과</div>
+      <div class="modal-score" id="modalScore">0점</div>
+      <div class="modal-desc" id="modalDesc">모든 문제를 완료했습니다!</div>
+      <button class="btn btn-submit" style="width:100%" id="btnCloseModal">확인 및 정답검토</button>
+    </div>
+  </div>
+
+  <script>
+    // 14개 한자 데이터 (青 -> 靑 변경 완료)
+    const hanjaData = [
+      { char: '高', sound: '고', desc: '높을', isBlue: false },
+      { char: '多', sound: '다', desc: '많을', isBlue: true },
+      { char: '讀', sound: '독', desc: '읽을', isBlue: false },
+      { char: '冷', sound: '랭/냉', desc: '찰', isBlue: true },
+      { char: '氷', sound: '빙', desc: '얼음', isBlue: true },
+      { char: '山', sound: '산', desc: '메', isBlue: false },
+      { char: '書', sound: '서', desc: '글', isBlue: false },
+      { char: '水', sound: '수', desc: '물', isBlue: false },
+      { char: '兒', sound: '아', desc: '아이', isBlue: true },
+      { char: '於', sound: '어', desc: '어조사', isBlue: true },
+      { char: '爲', sound: '위', desc: '할', isBlue: true },
+      { char: '天', sound: '천', desc: '하늘', isBlue: true },
+      { char: '靑', sound: '청', desc: '푸를', isBlue: false },
+      { char: '秋', sound: '추', desc: '가을', isBlue: false }
+    ];
+
+    // 13개 문제 연속 데이터
+    const questions = [
+      { id: 1, text: "산이 <span class='highlight'>높다</span>.", answer: ["山", "高"] },
+      { id: 2, text: "산이 <span class='highlight'>높고</span> 푸르다.", answer: ["山", "高", "靑"] },
+      { id: 3, text: "푸른 산이 <span class='highlight'>높다</span>.", answer: ["靑", "山", "高"] },
+      { id: 4, text: "하늘이 <span class='highlight'>파랗다</span>.", answer: ["天", "靑"] },
+      { id: 5, text: "가을 하늘이 <span class='highlight'>파랗다</span>.", answer: ["秋", "天", "靑"] },
+      { id: 6, text: "가을 하늘이 <span class='highlight'>높다</span>.", answer: ["秋", "天", "高"] },
+      { id: 7, text: "책을 <span class='highlight'>읽다</span>.", answer: ["讀", "書"] },
+      { id: 8, text: "아이가 책을 <span class='highlight'>읽는다</span>.", answer: ["兒", "讀", "書"] },
+      { id: 9, text: "아이가 책을 <span class='highlight'>많이 읽는다</span>.", answer: ["兒", "多", "讀", "書"] },
+      { id: 10, text: "차가운 물은 얼음이 <span class='highlight'>되었다</span>.", answer: ["冷", "水", "爲", "氷"] },
+      { id: 11, text: "차가운 얼음은 푸른 물이 <span class='highlight'>되었다</span>.", answer: ["冷", "氷", "爲", "靑", "水"] },
+      { id: 12, text: "얼음은 물보다 <span class='highlight'>차갑다</span>.", answer: ["氷", "冷", "於", "水"] },
+      { id: 13, text: "아이가 산에서 책을 <span class='highlight'>읽는다</span>.", answer: ["兒", "讀", "書", "於", "山"] }
+    ];
+
+    let selectedSlot = null;
+
+    // 초기화 함수
+    function init() {
+      renderBank();
+      renderQuiz();
+      setupEvents();
+    }
+
+    // 카드 뱅크 출력
+    function renderBank() {
+      const bankContainer = document.getElementById('cardBank');
+      bankContainer.innerHTML = '';
+      hanjaData.forEach(item => {
+        const card = document.createElement('div');
+        card.className = 'hanja-card';
+        card.onclick = () => fillSelectedSlot(item.char);
+        
+        card.innerHTML = `
+          <div class="char ${item.isBlue ? 'blue' : ''}">${item.char}</div>
+          <div class="sound">(${item.sound})</div>
+        `;
+        bankContainer.appendChild(card);
+      });
+    }
+
+    // 퀴즈 문제 출력 (분류 없이 1~13번 연속 배치)
+    function renderQuiz() {
+      const quizArea = document.getElementById('quizArea');
+      quizArea.innerHTML = '';
+
+      questions.forEach(q => {
+        const card = document.createElement('div');
+        card.className = 'quiz-card';
+        card.id = `quiz-card-${q.id}`;
+
+        let slotsHTML = '';
+        for (let i = 0; i < q.answer.length; i++) {
+          slotsHTML += `
+            <div class="slot" data-qid="${q.id}" data-idx="${i}" onclick="selectSlot(this)">
+              <span class="slot-text"></span>
+              <span class="slot-clear" onclick="clearSlot(event, this)">✕</span>
+            </div>
+          `;
+        }
+
+        card.innerHTML = `
+          <div class="feedback-badge" id="badge-${q.id}"></div>
+          <div class="quiz-header">
+            <div class="korean-text">${q.id}. ${q.text}</div>
+          </div>
+          <div class="slots-container">
+            ${slotsHTML}
+          </div>
+          <div class="answer-view" id="ans-${q.id}">정답: ${q.answer.join(' ')}</div>
+        `;
+
+        quizArea.appendChild(card);
+      });
+    }
+
+    // 슬롯 선택
+    function selectSlot(element) {
+      document.querySelectorAll('.slot').forEach(s => s.classList.remove('selected'));
+      selectedSlot = element;
+      selectedSlot.classList.add('selected');
+    }
+
+    // 선택된 슬롯에 한자 채우기
+    function fillSelectedSlot(char) {
+      if (!selectedSlot) {
+        const emptySlots = document.querySelectorAll('.slot:not(.filled)');
+        if (emptySlots.length > 0) {
+          selectSlot(emptySlots[0]);
+        } else {
+          alert('채울 빈칸을 먼저 클릭해주세요!');
+          return;
+        }
+      }
+
+      const textSpan = selectedSlot.querySelector('.slot-text');
+      textSpan.innerText = char;
+      selectedSlot.classList.add('filled');
+      selectedSlot.classList.remove('selected');
+
+      // 다음 빈 슬롯으로 자동으로 이동
+      const currentQid = selectedSlot.dataset.qid;
+      const currentIdx = parseInt(selectedSlot.dataset.idx);
+      
+      const nextInSameQ = document.querySelector(`.slot[data-qid="${currentQid}"][data-idx="${currentIdx + 1}"]`);
+      if (nextInSameQ && !nextInSameQ.classList.contains('filled')) {
+        selectSlot(nextInSameQ);
+      } else {
+        const nextAnyEmpty = document.querySelector('.slot:not(.filled)');
+        if (nextAnyEmpty) {
+          selectSlot(nextAnyEmpty);
+        } else {
+          selectedSlot = null;
+        }
+      }
+    }
+
+    // 슬롯 내용 지우기
+    function clearSlot(event, element) {
+      event.stopPropagation();
+      const slot = element.parentElement;
+      slot.querySelector('.slot-text').innerText = '';
+      slot.classList.remove('filled');
+      selectSlot(slot);
+    }
+
+    // 이벤트 바인딩
+    function setupEvents() {
+      document.getElementById('btnSubmit').onclick = submitQuiz;
+      document.getElementById('btnReset').onclick = resetQuiz;
+      document.getElementById('btnCloseModal').onclick = () => {
+        document.getElementById('resultModal').classList.remove('active');
+      };
+    }
+
+    // 답안 제출 및 채점
+    function submitQuiz() {
+      const allSlots = document.querySelectorAll('.slot');
+      let emptyCount = 0;
+
+      allSlots.forEach(s => {
+        if (!s.classList.contains('filled')) emptyCount++;
+      });
+
+      if (emptyCount > 0) {
+        alert(`모든 문제의 빈칸을 채운 후 제출해주세요!\n(남은 빈칸: ${emptyCount}개)`);
+        return;
+      }
+
+      let correctCount = 0;
+
+      questions.forEach(q => {
+        const slots = document.querySelectorAll(`.slot[data-qid="${q.id}"]`);
+        let isCorrect = true;
+
+        slots.forEach((slot, idx) => {
+          const userChar = slot.querySelector('.slot-text').innerText;
+          if (userChar !== q.answer[idx]) {
+            isCorrect = false;
+          }
+        });
+
+        const badge = document.getElementById(`badge-${q.id}`);
+        if (isCorrect) {
+          correctCount++;
+          badge.innerText = '◯';
+          badge.className = 'feedback-badge correct';
+          document.getElementById(`ans-${q.id}`).style.display = 'none';
+        } else {
+          badge.innerText = '✕';
+          badge.className = 'feedback-badge wrong';
+          document.getElementById(`ans-${q.id}`).style.display = 'block';
+        }
+      });
+
+      // 점수 계산 및 모달 표시
+      const score = Math.round((correctCount / questions.length) * 100);
+      document.getElementById('modalScore').innerText = `${score}점`;
+      document.getElementById('modalDesc').innerText = `총 ${questions.length}문제 중 ${correctCount}문제를 맞히셨습니다!`;
+      document.getElementById('resultModal').classList.add('active');
+    }
+
+    // 리셋
+    function resetQuiz() {
+      document.querySelectorAll('.slot').forEach(s => {
+        s.querySelector('.slot-text').innerText = '';
+        s.classList.remove('filled', 'selected');
+      });
+      document.querySelectorAll('.feedback-badge').forEach(b => {
+        b.style.display = 'none';
+      });
+      document.querySelectorAll('.answer-view').forEach(a => {
+        a.style.display = 'none';
+      });
+      selectedSlot = null;
+    }
+
+    window.onload = init;
+  </script>
+</body>
+</html>
